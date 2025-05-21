@@ -2,7 +2,10 @@ package com.fastwords.fastwords.models.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
+
+import com.fastwords.fastwords.common.enums.GameStatus;
 
 @Entity
 @Table(name = "games")
