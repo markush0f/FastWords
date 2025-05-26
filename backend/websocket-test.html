@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Test - FastWords</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+  <h2>Test WebSocket - FastWords</h2>
+
+  <label>userId: <input type="number" id="userId" value="1"></label><br>
+  <label>gameId: <input type="number" id="gameId" value="1"></label><br>
+  <button onclick="connect()">Conectar</button>
+  <button onclick="sendMessage()">Enviar Mensaje</button>
+
+  <pre id="log"></pre>
+
+  <script>
+    let stompClient = null;
+    let connected = false;
+
+    function log(text) {
+      const logElement = document.getElementById("log");
+      logElement.textContent += text + "\n";
+    }
+
+    function connect() {
+      const userId = document.getElementById("userId").value;
+      const gameId = document.getElementById("gameId").value;
+
+      const socket = new SockJS(`http://localhost:8080/ws?userId=${userId}&gameId=${gameId}`);
+      stompClient = Stomp.over(socket);
+      stompClient.debug = null; 
+
+      stompClient.connect({}, () => {
+        connected = true;
+        log("✅ Conectado correctamente");
+
+        stompClient.subscribe(`/topic/games/${gameId}`, (message) => {
+          const msg = JSON.parse(message.body);
+          log(`📨 Mensaje recibido: ${JSON.stringify(msg)}`);
+        });
+      }, (error) => {
+        log("❌ Error al conectar: " + error);
+      });
+    }
+
+    function sendMessage() {
+      if (!connected) {
+        log("⚠️ No estás conectado");
+        return;
+      }
+
+      const gameId = document.getElementById("gameId").value;
+
+      const msg = {
+        type: "TEST",
+        sender: "user-" + document.getElementById("userId").value,
+        gameId: parseInt(gameId),
+        content: "Esto es un mensaje de prueba"
+      };
+
+      stompClient.send("/app/game/send", {}, JSON.stringify(msg));
+      log("📤 Mensaje enviado: " + JSON.stringify(msg));
+    }
+  </script>
+</body>
+</html>

@@ -31,26 +31,28 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(
-            @org.springframework.lang.NonNull ServerHttpRequest request,
-            @org.springframework.lang.NonNull ServerHttpResponse response,
-            @org.springframework.lang.NonNull WebSocketHandler wsHandler,
-            @org.springframework.lang.NonNull Map<String, Object> attributes) {
+            ServerHttpRequest request,
+            ServerHttpResponse response,
+            WebSocketHandler wsHandler,
+            Map<String, Object> attributes) {
 
         if (!(request instanceof ServletServerHttpRequest servletRequest)) {
             return false;
         }
 
         HttpServletRequest httpRequest = servletRequest.getServletRequest();
-        String username = httpRequest.getParameter("username");
+        String userIdStr = httpRequest.getParameter("userId");
         String gameIdStr = httpRequest.getParameter("gameId");
 
-        if (username == null || gameIdStr == null) {
+        if (userIdStr == null || gameIdStr == null) {
             return false;
         }
 
-        final Long gameId;
+        Long userId;
+        Long gameId;
         try {
-            gameId = Long.valueOf(gameIdStr);
+            userId = Long.parseLong(userIdStr);
+            gameId = Long.parseLong(gameIdStr);
         } catch (NumberFormatException e) {
             return false;
         }
@@ -63,8 +65,8 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         Game game = optionalGame.get();
 
         boolean isPlayer
-                = (game.getPlayer1() != null && game.getPlayer1().getUsername().equals(username))
-                || (game.getPlayer2() != null && game.getPlayer2().getUsername().equals(username));
+                = (game.getPlayer1() != null && game.getPlayer1().getId().equals(userId))
+                || (game.getPlayer2() != null && game.getPlayer2().getId().equals(userId));
 
         if (!isPlayer) {
             return false;
@@ -73,14 +75,16 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         connectedUsers.putIfAbsent(gameId, ConcurrentHashMap.newKeySet());
         Set<String> players = connectedUsers.get(gameId);
 
-        if (players.size() >= 2 && !players.contains(username)) {
+        if (players.size() >= 2 && !players.contains(String.valueOf(userId))) {
             return false;
         }
 
-        players.add(username);
+        players.add(String.valueOf(userId));
 
-        attributes.put("username", username);
+        attributes.put("userId", userId);
         attributes.put("gameId", gameId);
+
+        System.out.println("✅ WebSocket conectado: userId=" + userId + ", gameId=" + gameId);
 
         return true;
     }
