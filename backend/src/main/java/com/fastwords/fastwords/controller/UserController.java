@@ -11,15 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fastwords.fastwords.models.dtos.CreateUserDto;
 import com.fastwords.fastwords.models.dtos.UserResponseDto;
-import com.fastwords.fastwords.services.UserServiceImpl;
+import com.fastwords.fastwords.services.UserService;
 
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
 
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
-    public UserController(UserServiceImpl userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
@@ -29,12 +29,6 @@ public class UserController {
     }
 
 
-    @PostMapping("test")
-    public ResponseEntity<String> testPost() {
-        System.out.println("Test POST request received!");
-        return ResponseEntity.ok("Test POST request received");
-    }
-    
     @PostMapping("")
     public ResponseEntity<UserResponseDto> createUser(@RequestBody CreateUserDto createUserDto) {
         System.out.println("Received request to create user with details: " + createUserDto);

@@ -18,6 +18,9 @@ public class Game {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
+
     @ManyToOne
     @JoinColumn(name = "player1_id", nullable = false)
     private User player1;
