@@ -34,7 +34,7 @@ public class Game {
     private Collection collection;
 
     @Enumerated(EnumType.STRING)
-    private GameStatus status;
+    private GameStatus gameStatus;
 
     @ManyToOne
     @JoinColumn(name = "winner_id")

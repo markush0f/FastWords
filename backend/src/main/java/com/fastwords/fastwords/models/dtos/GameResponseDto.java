@@ -1,5 +1,7 @@
 package com.fastwords.fastwords.models.dtos;
 
+import com.fastwords.fastwords.common.enums.GameStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,6 +15,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class GameResponseDto {
 
+    private Long id;
+
     private String name;
 
     private Long player1Id;
@@ -21,5 +25,6 @@ public class GameResponseDto {
 
     private Long collectionId;
 
-    private String status;
+    private GameStatus gameStatus;
+
 }

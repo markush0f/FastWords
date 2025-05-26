@@ -7,14 +7,17 @@ import com.fastwords.fastwords.models.dtos.CreateUserDto;
 import com.fastwords.fastwords.models.dtos.UserResponseDto;
 import com.fastwords.fastwords.models.entities.User;
 import com.fastwords.fastwords.repository.UserRepository;
+import com.fastwords.fastwords.util.ResourceFinder;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final ResourceFinder resourceFinder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, ResourceFinder resourceFinder) {
         this.userRepository = userRepository;
+        this.resourceFinder = resourceFinder;
     }
 
     @Override
@@ -70,6 +73,12 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new RuntimeException("Error retrieving user: " + e.getMessage());
         }
+    }
+
+    @Override
+    public User findUserOrThrowNotFound(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
     }
 
 }
