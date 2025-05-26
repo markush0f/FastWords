@@ -6,7 +6,9 @@ import com.fastwords.fastwords.models.entities.Collection;
 import com.fastwords.fastwords.models.entities.Game;
 import com.fastwords.fastwords.models.entities.User;
 import com.fastwords.fastwords.repository.GameRepository;
+import org.springframework.stereotype.Service;
 
+@Service
 public class GameServiceImpl implements GameService {
 
     private final UserService userService;

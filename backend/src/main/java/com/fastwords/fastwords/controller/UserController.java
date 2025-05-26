@@ -32,7 +32,10 @@ public class UserController {
     @PostMapping("")
     public ResponseEntity<UserResponseDto> createUser(@RequestBody CreateUserDto createUserDto) {
         System.out.println("Received request to create user with details: " + createUserDto);
-        return ResponseEntity.ok(userService.createUser(createUserDto));
+        UserResponseDto createdUser = userService.createUser(createUserDto);
+        return ResponseEntity
+            .created(java.net.URI.create("/" + createdUser.getId()))
+            .body(createdUser);
     }
 
     @DeleteMapping("{id}")
