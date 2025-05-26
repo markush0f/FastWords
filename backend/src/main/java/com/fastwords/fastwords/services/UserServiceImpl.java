@@ -1,14 +1,13 @@
 package com.fastwords.fastwords.services;
 
-import org.springframework.http.ResponseEntity;
-
-import com.fastwords.fastwords.models.entities.User;
+import com.fastwords.fastwords.models.dtos.CreateUserDto;
+import com.fastwords.fastwords.models.dtos.UserResponseDto;
 
 public interface UserServiceImpl {
 
-    ResponseEntity<User> createUser(String username, String password);
-    ResponseEntity<User> updateUser(Long userId, String username, String password);
-    ResponseEntity<?> deleteUser(Long userId);
-    ResponseEntity<User> getUserById(Long userId);
+    UserResponseDto createUser(CreateUserDto createUserDto);
+    UserResponseDto updateUser(Long userId, String username, String password);
+    void deleteUser(Long userId);
+    UserResponseDto getUserById(Long userId);
     
 }
