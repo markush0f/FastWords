@@ -28,6 +28,7 @@ public class CollectionControler {
     @PostMapping("")
     public ResponseEntity<CollectionResponseDto> postMethodName(@RequestBody CreateCollectionDto createCollectionDto) {
         CollectionResponseDto collectionResponseDto = collectionService.createCollection(createCollectionDto);
+        
         return ResponseEntity
                 .created(URI.create("/" + collectionResponseDto.getId())) 
                 .body(collectionService.createCollection(createCollectionDto));
