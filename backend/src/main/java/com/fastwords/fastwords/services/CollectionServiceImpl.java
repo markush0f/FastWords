@@ -18,23 +18,16 @@ public class CollectionServiceImpl implements CollectionService {
 
     @Override
     public CollectionResponseDto createCollection(CreateCollectionDto createCollectionDto) {
-        try {
-            Collection collection = Collection.builder()
-                    .name(createCollectionDto.getName())
-                    .build();
-            if ((findCollectionbyName(collection.getName())) != null) {
-                throw new RuntimeException("Collection with name '" + collection.getName() + "' already exists.");
-            }
-            Collection savedCollection = collectionRepository.save(collection);
+        Collection collection = Collection.builder()
+                .name(createCollectionDto.getName())
+                .build();
 
-            return CollectionResponseDto.builder()
-                    .id(savedCollection.getId())
-                    .name(savedCollection.getName())
-                    .build();
+        Collection savedCollection = collectionRepository.save(collection);
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return CollectionResponseDto.builder()
+                .id(savedCollection.getId())
+                .name(savedCollection.getName())
+                .build();
     }
 
     @Override
