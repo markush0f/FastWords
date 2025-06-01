@@ -3,6 +3,11 @@ spring:
     url: jdbc:postgresql://localhost:5432/fastwords_db
     username: markus_fastwords
     password: 1234
+  logging:
+    level:
+      root: INFO
+      com.fastwords: DEBUG
+
 
   jpa:
     hibernate:
