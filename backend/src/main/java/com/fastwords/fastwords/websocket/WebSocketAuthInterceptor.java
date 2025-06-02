@@ -14,6 +14,7 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import com.fastwords.fastwords.models.entities.Game;
 import com.fastwords.fastwords.repository.GameRepository;
+import com.fastwords.fastwords.services.GameConnectionService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -21,10 +22,13 @@ import jakarta.servlet.http.HttpServletRequest;
 public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
     private final GameRepository gameRepository;
+    private final GameConnectionService connectionService;
+
     private final Map<Long, Set<Long>> connectedUsers = new ConcurrentHashMap<>();
 
-    public WebSocketAuthInterceptor(GameRepository gameRepository) {
+    public WebSocketAuthInterceptor(GameRepository gameRepository, GameConnectionService connectionService) {
         this.gameRepository = gameRepository;
+        this.connectionService = connectionService;
     }
 
     @Override
@@ -43,7 +47,7 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         String gameIdStr = httpRequest.getParameter("gameId");
 
         if (userIdStr == null || gameIdStr == null) {
-            System.out.println("❌ Falta userId o gameId en la URL");
+            System.out.println("Falta userId o gameId en la URL");
             return false;
         }
 
@@ -55,7 +59,7 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         } catch (NumberFormatException e) {
             System.out.println("❌ userId o gameId inválidos");
             return false;
-        } 
+        }
 
         Optional<Game> optionalGame = gameRepository.findById(gameId);
         if (optionalGame.isEmpty()) {
@@ -77,13 +81,14 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         connectedUsers.putIfAbsent(gameId, ConcurrentHashMap.newKeySet());
         Set<Long> players = connectedUsers.get(gameId);
 
-        // Rechaza si ya hay 2 conectados y este aún no está
         if (players.size() >= 2 && !players.contains(userId)) {
             System.out.println("❌ El juego " + gameId + " ya tiene 2 jugadores conectados");
             return false;
         }
 
         players.add(userId);
+
+        // Guardamos los valores para usarlos en afterHandshake
         attributes.put("userId", userId);
         attributes.put("gameId", gameId);
 
@@ -98,5 +103,23 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             ServerHttpResponse response,
             WebSocketHandler wsHandler,
             Exception exception) {
+        if (!(request instanceof ServletServerHttpRequest servletRequest)) {
+            return;
+        }
+
+        HttpServletRequest httpRequest = servletRequest.getServletRequest();
+        String userIdStr = httpRequest.getParameter("userId");
+        String gameIdStr = httpRequest.getParameter("gameId");
+
+        if (userIdStr == null || gameIdStr == null) {
+            return;
+        }
+
+        try {
+            Long userId = Long.parseLong(userIdStr);
+            Long gameId = Long.parseLong(gameIdStr);
+            connectionService.addConnectedPlayer(gameId, userId);
+        } catch (NumberFormatException ignored) {
+        }
     }
 }

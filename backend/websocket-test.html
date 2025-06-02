@@ -1,94 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
   <meta charset="UTF-8">
-  <title>WebSocket Test - FastWords</title>
-  <!-- SockJS -->
-  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-  <!-- STOMP moderno -->
-  <script type="module">
-    import { Client } from 'https://cdn.jsdelivr.net/npm/@stomp/stompjs@6.1.2/+esm';
-
-    let client = null;
-    let connected = false;
-
-    window.connect = function () {
-      if (connected) {
-        log("🟡 Ya estás conectado.");
-        return;
-      }
-
-      const userId = document.getElementById("userId").value;
-      const gameId = document.getElementById("gameId").value;
-      const socketUrl = `http://localhost:8080/ws?userId=${userId}&gameId=${gameId}`;
-
-      const socket = new SockJS(socketUrl);
-
-      client = new Client({
-        webSocketFactory: () => socket,
-        reconnectDelay: 0, 
-        onConnect: () => {
-          connected = true;
-          log("✅ Conectado correctamente");
-
-          client.subscribe(`/topic/games/${gameId}`, (message) => {
-            const msg = JSON.parse(message.body);
-            log(`📨 Mensaje recibido: ${JSON.stringify(msg)}`);
-          });
-        },
-        onStompError: (frame) => {
-          log("❌ Error STOMP: " + frame.body);
-        },
-        onWebSocketError: (error) => {
-          log("❌ Error WebSocket: " + error);
-        }
-      });
-
-      client.activate();
-    };
-
-    window.sendMessage = function () {
-      if (!connected || !client || !client.connected) {
-        log("⚠️ No estás conectado");
-        return;
-      }
-
-      const userId = document.getElementById("userId").value;
-      const gameId = document.getElementById("gameId").value;
-
-      const msg = {
-        type: "TEST",
-        sender: `user-${userId}`,
-        gameId: parseInt(gameId),
-        content: "Esto es un mensaje de prueba"
-      };
-
-      client.publish({
-        destination: "/app/game/send",
-        body: JSON.stringify(msg)
-      });
-
-      log("📤 Mensaje enviado: " + JSON.stringify(msg));
-    };
-
-    function log(text) {
-      const logElement = document.getElementById("log");
-      logElement.textContent += text + "\n";
-    }
-  </script>
+  <title>Test Matchmaking WebSocket</title>
 </head>
 
 <body>
-  <h2>Test WebSocket - FastWords</h2>
+  <h1>Tester de Emparejamiento</h1>
+  <button onclick="connect()">Conectar y Buscar Partida</button>
+  <p id="status">Estado: Desconectado</p>
+  <p id="partida"></p>
 
-  <label>userId: <input type="number" id="userId" value="1"></label><br>
-  <label>gameId: <input type="number" id="gameId" value="1"></label><br><br>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/umd/stomp.umd.min.js"></script>
+  <script>
+    let stompClient;
+    let playerId;
 
-  <button onclick="connect()">Conectar</button>
-  <button onclick="sendMessage()">Enviar Mensaje</button>
+    function connect() {
+      const socket = new WebSocket("ws://localhost:8080/ws?userId=1&gameId=1");
 
-  <pre id="log" style="background:#111;color:#0f0;padding:1rem;height:200px;overflow:auto;"></pre>
+      stompClient = new StompJs.Client({
+        webSocketFactory: () => socket,
+        reconnectDelay: 5000
+      });
+      playerId = "jugador_" + Math.floor(Math.random() * 10000);
+
+      stompClient.connect({}, function () {
+        document.getElementById("status").innerText = "Estado: Conectado como " + playerId;
+
+        // Suscripción para escuchar cuando se encuentra una partida
+        stompClient.subscribe("/user/queue/matchfound", function (message) {
+          const partidaId = message.body;
+          document.getElementById("partida").innerText = "¡Partida encontrada! ID: " + partidaId;
+        });
+
+        // Enviar solicitud de matchmaking con el ID del jugador
+        stompClient.send("/app/matchmaking", {}, JSON.stringify({ playerId }));
+      });
+    }
+  </script>
 </body>
 
 </html>
