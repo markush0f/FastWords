@@ -16,7 +16,7 @@ export default function PlayGame() {
 
     return (
         <motion.div
-            className="flex flex-col items-center justify-center bg-[#96b8f0] min-h-screen"
+            className="flex flex-col items-center justify-center bg-[#96b8f0]"
             initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
@@ -30,17 +30,17 @@ export default function PlayGame() {
                 className="object-cover -mt-20"
             />
 
-            <input
+            {/* <input
                 type="text"
                 value={playerId}
                 onChange={(e) => setPlayerId(e.target.value)}
                 placeholder="Enter your player ID"
                 className="mt-6 text-2xl px-6 py-2 rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500"
-            />
+            /> */}
 
             <motion.button
                 onClick={handleSearch}
-                disabled={searching || !playerId.trim()}
+                // disabled={searching || !playerId.trim()}
                 className="mt-10 w-140 h-30 bg-[#fa5d6f] text-[#ffffff] border-10 border-[#FFD447] text-5xl font-semibold cursor-pointer rounded-full flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 animate={searching ? undefined : { y: [0, -15, 0] }}
                 transition={{

@@ -17,6 +17,15 @@ export default function FirstScreen({ setFirstScreenVisible }: Props) {
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.5 }}
         >
+            <a
+                href="https://github.com/markush0f/FastWords"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-4 right-4  px-4 py-2 rounded-full text-sm transition cursor-pointer"
+            >
+                <img src="github.svg" alt="Github" />
+            </a>
+
             <Image
                 src="/fastwords.png"
                 alt="FastWords"
@@ -24,6 +33,7 @@ export default function FirstScreen({ setFirstScreenVisible }: Props) {
                 height={500}
                 className="absolute top-[104] object-cover"
             />
+
             <motion.button
                 onClick={() => setFirstScreenVisible(false)}
                 className="absolute bottom-50 w-140 h-30 bg-[#fa5d6f] text-[#ffffff] border-10 border-[#FFD447] text-5xl font-semibold cursor-pointer rounded-full flex items-center justify-center gap-2"
@@ -58,5 +68,6 @@ export default function FirstScreen({ setFirstScreenVisible }: Props) {
                 />
             </motion.button>
         </motion.div>
+
     );
 }
