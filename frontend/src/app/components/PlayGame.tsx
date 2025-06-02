@@ -1,18 +1,18 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { useMatchmaking } from '../hooks/useMatchmaking';
 
 export default function PlayGame() {
-    const { gameId, searching, error, findMatch } = useMatchmaking();
-    const [playerId, setPlayerId] = useState("");
+    const { gameId, searching, error } = useMatchmaking();
+    // const [playerId, setPlayerId] = useState("");
 
-    const handleSearch = () => {
-        if (!playerId.trim()) return;
-        findMatch(playerId);
-    };
+    // const handleSearch = () => {
+    //     if (!playerId.trim()) return;
+    //     findMatch(playerId);
+    // };
 
     return (
         <motion.div
@@ -39,7 +39,7 @@ export default function PlayGame() {
             /> */}
 
             <motion.button
-                onClick={handleSearch}
+                // onClick={handleSearch}
                 // disabled={searching || !playerId.trim()}
                 className="mt-10 w-140 h-30 bg-[#fa5d6f] text-[#ffffff] border-10 border-[#FFD447] text-5xl font-semibold cursor-pointer rounded-full flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 animate={searching ? undefined : { y: [0, -15, 0] }}

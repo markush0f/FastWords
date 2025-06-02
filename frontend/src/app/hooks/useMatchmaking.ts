@@ -59,7 +59,7 @@ export function useMatchmaking(): UseMatchmakingResult {
         if (startReceived && gameId) {
             router.push(`/game/${gameId}`);
         }
-    }, [startReceived, gameId]);
+    }, [startReceived, gameId, router]);
 
     useEffect(() => {
         const handleBeforeUnload = () => {
