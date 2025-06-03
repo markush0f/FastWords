@@ -7,5 +7,6 @@ import lombok.Setter;
 @Setter
 public class MatchmakingRequest {
     private String playerId;   
+    private Long collectionId; 
 }
 

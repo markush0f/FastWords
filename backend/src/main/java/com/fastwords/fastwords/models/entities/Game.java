@@ -14,6 +14,7 @@ import com.fastwords.fastwords.common.enums.GameStatus;
 @AllArgsConstructor
 @Builder
 public class Game {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,4 +43,8 @@ public class Game {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "time_per_turn", nullable = false)
+    private Integer timePerTurn;
+
 }

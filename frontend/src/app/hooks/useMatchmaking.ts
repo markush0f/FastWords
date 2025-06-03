@@ -7,9 +7,13 @@ interface UseMatchmakingResult {
     searching: boolean;
     error: string | null;
     findMatch: (playerId: string) => void;
+    playerId: string | null;
+    setPlayerId: (id: string | null) => void;
+
 }
 
 export function useMatchmaking(): UseMatchmakingResult {
+    const [playerId, setPlayerId] = useState<string | null>(null);
     const [gameId, setGameId] = useState<string | null>(null);
     const [searching, setSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -20,8 +24,9 @@ export function useMatchmaking(): UseMatchmakingResult {
     const findMatch = (playerId: string) => {
         setSearching(true);
         setError(null);
+        setPlayerId(playerId);
 
-        const socketUrl = `ws://localhost:8080/ws?userId=${playerId}&gameId=1`;
+        const socketUrl = `ws://localhost:8080/ws?userId=${playerId}&gameId=${gameId}`;
 
         const client = new Client({
             brokerURL: socketUrl,
@@ -40,7 +45,7 @@ export function useMatchmaking(): UseMatchmakingResult {
 
                 client.publish({
                     destination: "/app/matchmaking",
-                    body: JSON.stringify({ playerId }),
+                    body: JSON.stringify({ playerId, collectionId: 1 }),
                 });
             },
             onStompError: (frame) => {
@@ -78,6 +83,9 @@ export function useMatchmaking(): UseMatchmakingResult {
         gameId,
         searching,
         error,
-        findMatch
+        findMatch,
+        playerId,
+        setPlayerId
+
     };
 }

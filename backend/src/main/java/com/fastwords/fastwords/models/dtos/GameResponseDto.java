@@ -27,4 +27,6 @@ public class GameResponseDto {
 
     private GameStatus gameStatus;
 
+    private int timePerTurn;
+
 }
