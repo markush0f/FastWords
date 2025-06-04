@@ -9,6 +9,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fastwords.fastwords.common.enums.GameStatus;
 import com.fastwords.fastwords.models.dtos.GameResponseDto;
 import com.fastwords.fastwords.models.dtos.MatchmakingRequest;
@@ -43,7 +45,7 @@ public class MatchmakingController {
     }
 
     @MessageMapping("/matchmaking")
-    public void handleMatchmaking(MatchmakingRequest request) {
+    public void handleMatchmaking(MatchmakingRequest request) throws JsonProcessingException {
         logger.info("Received collection id request from player: {}", request.getCollectionId());
         String playerId = request.getPlayerId();
         String opponentId = waitingPlayers.poll();
@@ -53,11 +55,7 @@ public class MatchmakingController {
             logger.info("Player 1: {}", player1.getUsername());
             User player2 = userRepository.findById(Long.valueOf(opponentId)).orElseThrow();
             logger.info("Player 2: {}", player2.getUsername());
-            Collection collection = collectionRepository.findById(request.getCollectionId())
-                    .orElse(null);
-
-            logger.info("Collection: {}", collection != null ? collection.getName() : "No collection");
-            logger.info("Game status: {}", GameStatus.PENDING);
+            Collection collection = collectionRepository.findById(request.getCollectionId()).orElse(null);
 
             Game game = Game.builder()
                     .name("Game between " + playerId + " and " + opponentId + " at " + System.currentTimeMillis())
@@ -68,26 +66,43 @@ public class MatchmakingController {
                     .timePerTurn(3)
                     .build();
 
-            logger.info("Game created: {}", game);
             Game gameCreated = gameRepository.save(game);
             Long gameId = gameCreated.getId();
-            logger.info("Game ID: {}", gameId);
+
             messagingTemplate.convertAndSend("/topic/matchmaking/" + playerId, gameId);
             messagingTemplate.convertAndSend("/topic/matchmaking/" + opponentId, gameId);
 
-            GameResponseDto gameData = GameResponseDto.builder()
-                    .id(gameId)
-                    .name(game.getName())
-                    .player1Id(player1.getId())
-                    .player2Id(player2.getId())
-                    .collectionId(collection != null ? collection.getId() : null)
-                    .gameStatus(game.getGameStatus())
-                    .timePerTurn(game.getTimePerTurn())
-                    .build();
-
-            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/data", gameData);
+            sendGameData(gameCreated);
         } else {
             waitingPlayers.add(playerId);
         }
+    }
+
+    @MessageMapping("/game/data/request")
+    public void resendGameData(MatchmakingRequest request) throws JsonProcessingException {
+        logger.info("📩 Petición explícita de gameData: gameId={}, playerId={}", request.getGameId(), request.getPlayerId());
+
+        Long gameId = Long.parseLong(request.getGameId());
+        Game game = gameRepository.findById(gameId).orElseThrow();
+
+        sendGameData(game);
+    }
+
+    private void sendGameData(Game game) throws JsonProcessingException {
+        GameResponseDto gameData = GameResponseDto.builder()
+                .id(game.getId())
+                .name(game.getName())
+                .player1Id(game.getPlayer1().getId())
+                .player2Id(game.getPlayer2().getId())
+                .collectionId(game.getCollection() != null ? game.getCollection().getId() : null)
+                .gameStatus(game.getGameStatus())
+                .timePerTurn(game.getTimePerTurn())
+                .build();
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(gameData);
+
+        logger.info("🔁 Reenviando gameData a /topic/game/{}/data", game.getId());
+        messagingTemplate.convertAndSend("/topic/game/" + game.getId() + "/data", json);
     }
 }

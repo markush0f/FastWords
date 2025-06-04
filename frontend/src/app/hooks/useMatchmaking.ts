@@ -9,7 +9,6 @@ interface UseMatchmakingResult {
     findMatch: (playerId: string) => void;
     playerId: string | null;
     setPlayerId: (id: string | null) => void;
-
 }
 
 export function useMatchmaking(): UseMatchmakingResult {
@@ -20,32 +19,38 @@ export function useMatchmaking(): UseMatchmakingResult {
     const [startReceived, setStartReceived] = useState(false);
     const stompRef = useRef<Client | null>(null);
     const router = useRouter();
+    const playerIdRef = useRef<string | null>(null); // ✅ siempre actualizado
 
-    const findMatch = (playerId: string) => {
+    const setPlayerIdSafe = (id: string | null) => {
+        setPlayerId(id);
+        playerIdRef.current = id;
+    };
+
+    const findMatch = (id: string) => {
         setSearching(true);
         setError(null);
-        setPlayerId(playerId);
+        setPlayerIdSafe(id); // ✅ actualizamos el ref
 
-        const socketUrl = `ws://localhost:8080/ws?userId=${playerId}&gameId=${gameId}`;
+        const socketUrl = `ws://localhost:8080/ws?userId=${id}`; // ⚠️ solo userId, sin gameId aún
 
         const client = new Client({
             brokerURL: socketUrl,
             reconnectDelay: 5000,
             onConnect: () => {
-                client.subscribe(`/topic/matchmaking/${playerId}`, (message) => {
-                    console.log("[Matchmaking]", message.body);
-                    setGameId(message.body);
+                client.subscribe(`/topic/matchmaking/${id}`, (message) => {
+                    const newGameId = message.body;
+                    console.log("[Matchmaking] Match found! Game ID:", newGameId);
+                    setGameId(newGameId);
                     setSearching(false);
-                });
 
-                client.subscribe(`/topic/game/1`, (message) => {
-                    console.log("[Game Start]", message.body);
-                    setStartReceived(true);
+                    client.deactivate().then(() => {
+                        connectToGameWebSocket(id, newGameId);
+                    });
                 });
 
                 client.publish({
                     destination: "/app/matchmaking",
-                    body: JSON.stringify({ playerId, collectionId: 1 }),
+                    body: JSON.stringify({ playerId: id, collectionId: 1 }),
                 });
             },
             onStompError: (frame) => {
@@ -59,10 +64,44 @@ export function useMatchmaking(): UseMatchmakingResult {
         stompRef.current = client;
     };
 
+    const connectToGameWebSocket = (userId: string, gameId: string) => {
+        const socketUrl = `ws://localhost:8080/ws?userId=${userId}&gameId=${gameId}`;
+
+        const client = new Client({
+            brokerURL: socketUrl,
+            reconnectDelay: 5000,
+            onConnect: () => {
+                console.log("🧩 Connected to game WebSocket:", socketUrl);
+
+                client.subscribe(`/topic/game/${gameId}/data`, (message) => {
+                    const gameData = JSON.parse(message.body);
+                    console.log("[Game Start]", gameData);
+                    setStartReceived(true);
+                });
+
+                // ✅ Pedimos al backend que reenvíe el gameData
+                client.publish({
+                    destination: "/app/game/data/request",
+                    body: JSON.stringify({ playerId: userId, gameId: gameId }),
+                });
+            },
+            onStompError: (frame) => {
+                console.error("STOMP error in game connection", frame);
+                setError("WebSocket game connection error.");
+            },
+        });
+
+        client.activate();
+        stompRef.current = client;
+    };
+
+
+
     useEffect(() => {
         console.log("[useMatchmaking] startReceived:", startReceived, "gameId:", gameId);
         if (startReceived && gameId) {
-            router.push(`/game/${gameId}`);
+            router.push(`/game/${gameId}?playerId=${playerIdRef.current}`);
+            setStartReceived(false);
         }
     }, [startReceived, gameId]);
 
@@ -72,7 +111,6 @@ export function useMatchmaking(): UseMatchmakingResult {
         };
 
         window.addEventListener("beforeunload", handleBeforeUnload);
-
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
             stompRef.current?.deactivate();
@@ -85,7 +123,6 @@ export function useMatchmaking(): UseMatchmakingResult {
         error,
         findMatch,
         playerId,
-        setPlayerId
-
+        setPlayerId: setPlayerIdSafe,
     };
 }
