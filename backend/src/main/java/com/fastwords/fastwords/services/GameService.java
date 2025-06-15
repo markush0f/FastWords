@@ -8,4 +8,6 @@ public interface GameService
     GameResponseDto createGame(CreateGameDto createGameDto);
 
     void deleteGame(Long roomId, Long userId);
+
+    GameResponseDto getGameById(Long id);
 }

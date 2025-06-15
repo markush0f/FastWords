@@ -1,60 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
-import { Client, IMessage } from '@stomp/stompjs';
+// hooks/useGameData.ts
+import { useEffect, useState } from "react";
 
-interface GameData {
-    id: number;
-    name: string;
-    player1Id: number;
-    player2Id: number;
-    collectionId: number;
-    gameStatus: string;
-    timeRound: string;
-}
-
-interface UseGameDataResult {
-    gameData: GameData | null;
-    loading: boolean;
-    error: string | null;
-}
-
-export function useGameData(gameId: string, userId: string): UseGameDataResult {
-    const [gameData, setGameData] = useState<GameData | null>(null);
+export function useGameData(gameId: string, playerId: string) {
+    const [gameData, setGameData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const stompRef = useRef<Client | null>(null);
 
     useEffect(() => {
         if (!gameId) return;
 
-        const client = new Client({
-            brokerURL: `ws://localhost:8080/ws?userId=${userId}&gameId=${gameId}`,
-            reconnectDelay: 5000,
-            onConnect: () => {
-                client.subscribe(`/topic/game/${gameId}/data`, (message: IMessage) => {
-                    try {
-                        const data = JSON.parse(message.body);
-                        setGameData(data);
-                        setLoading(false);
-                    } catch (e) {
-                        console.error("❌ Error al parsear gameData:", e);
-                        setError("Error al procesar datos de la partida");
-                        setLoading(false);
-                    }
-                });
-            },
-            onStompError: (frame) => {
-                console.error("STOMP error", frame);
-                setError("Error de conexión WebSocket.");
+        const fetchGameData = async () => {
+            try {
+                setLoading(true);
+                const res = await fetch(`http://localhost:8080/api/v1/game/${gameId}`);
+                if (!res.ok) throw new Error("Game not found");
+                const data = await res.json();
+                setGameData(data);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
                 setLoading(false);
             }
-        });
-
-        client.activate();
-        stompRef.current = client;
-
-        return () => {
-            client.deactivate();
         };
+
+        fetchGameData();
     }, [gameId]);
 
     return { gameData, loading, error };

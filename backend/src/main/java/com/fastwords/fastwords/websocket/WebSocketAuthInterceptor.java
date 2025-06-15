@@ -38,14 +38,17 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             WebSocketHandler wsHandler,
             Map<String, Object> attributes) {
 
+        // Verifica que la petición sea HTTP tipo servlet
         if (!(request instanceof ServletServerHttpRequest servletRequest)) {
             return false;
         }
 
+        // Extrae la petición HTTP real
         HttpServletRequest httpRequest = servletRequest.getServletRequest();
         String userIdStr = httpRequest.getParameter("userId");
         String gameIdStr = httpRequest.getParameter("gameId");
 
+        // Si no se envia userId, se rechaza la conexión
         if (userIdStr == null) {
             System.out.println("❌ Falta userId en la URL");
             return false;
@@ -54,28 +57,32 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         Long userId;
         Long gameId;
 
+        // Convierte userId a Long, si es inválido rechaza
         try {
             userId = Long.parseLong(userIdStr);
         } catch (NumberFormatException e) {
-            System.out.println("❌ userId inválido");
+            System.out.println("❌ formato de userId inválido: " + userIdStr);
             return false;
         }
 
+        // Guarda el userId en los atributos de la sesión WebSocket
         attributes.put("userId", userId);
 
-        // 👉 Permitir conexiones sin gameId (modo matchmaking)
+        // Si no hay gameId, se asume que es una conexión inicial para matchmaking
         if (gameIdStr == null) {
             System.out.println("🔁 Conexión sin gameId (modo matchmaking)");
             return true;
         }
 
+        // Convierte gameId a Long, si falla rechaza
         try {
             gameId = Long.parseLong(gameIdStr);
         } catch (NumberFormatException e) {
-            System.out.println("❌ gameId inválido");
+            System.out.println("❌ formato de gameId inválido: " + gameIdStr);
             return false;
         }
 
+        // Busca el juego por ID, si no existe rechaza
         Optional<Game> optionalGame = gameRepository.findById(gameId);
         if (optionalGame.isEmpty()) {
             System.out.println("❌ Juego no encontrado: " + gameId);
@@ -84,29 +91,34 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
         Game game = optionalGame.get();
 
-        boolean isPlayer =
-                (game.getPlayer1() != null && game.getPlayer1().getId().equals(userId)) ||
-                (game.getPlayer2() != null && game.getPlayer2().getId().equals(userId));
+        // Verifica que el usuario pertenezca al juego (player1 o player2)
+        boolean isPlayer
+                = (game.getPlayer1() != null && game.getPlayer1().getId().equals(userId))
+                || (game.getPlayer2() != null && game.getPlayer2().getId().equals(userId));
 
         if (!isPlayer) {
             System.out.println("❌ El usuario " + userId + " no pertenece al juego " + gameId);
             return false;
         }
 
+        // Asegura que haya una lista para los jugadores conectados a este juego
         connectedUsers.putIfAbsent(gameId, ConcurrentHashMap.newKeySet());
         Set<Long> players = connectedUsers.get(gameId);
 
+        // Si ya estaba conectado, se permite reconectar
         if (players.contains(userId)) {
             System.out.println("🔁 Reconexion permitida: userId=" + userId + " en gameId=" + gameId);
             attributes.put("gameId", gameId);
             return true;
         }
 
+        // Si ya hay 2 jugadores distintos conectados, rechaza nuevos
         if (players.size() >= 2) {
             System.out.println("❌ El juego " + gameId + " ya tiene 2 jugadores distintos conectados");
             return false;
         }
 
+        // Agrega al usuario como jugador conectado
         players.add(userId);
         attributes.put("gameId", gameId);
 
@@ -131,7 +143,9 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         String userIdStr = httpRequest.getParameter("userId");
         String gameIdStr = httpRequest.getParameter("gameId");
 
-        if (userIdStr == null || gameIdStr == null) return;
+        if (userIdStr == null || gameIdStr == null) {
+            return;
+        }
 
         try {
             Long userId = Long.parseLong(userIdStr);

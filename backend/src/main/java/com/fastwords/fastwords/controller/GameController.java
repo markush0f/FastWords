@@ -3,6 +3,8 @@ package com.fastwords.fastwords.controller;
 import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,12 @@ public class GameController {
         return ResponseEntity
                 .created(URI.create("/" + createdGame.getId()))
                 .body(createdGame);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<GameResponseDto> getGameById(@PathVariable Long id) {
+        GameResponseDto game = gameService.getGameById(id);
+        return ResponseEntity.ok(game);
     }
 
 }

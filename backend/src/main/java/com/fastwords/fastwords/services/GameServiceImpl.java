@@ -1,12 +1,13 @@
 package com.fastwords.fastwords.services;
 
+import org.springframework.stereotype.Service;
+
 import com.fastwords.fastwords.models.dtos.CreateGameDto;
 import com.fastwords.fastwords.models.dtos.GameResponseDto;
 import com.fastwords.fastwords.models.entities.Collection;
 import com.fastwords.fastwords.models.entities.Game;
 import com.fastwords.fastwords.models.entities.User;
 import com.fastwords.fastwords.repository.GameRepository;
-import org.springframework.stereotype.Service;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -64,6 +65,21 @@ public class GameServiceImpl implements GameService {
         } catch (RuntimeException e) {
             throw new RuntimeException("Error deleting game: " + e.getMessage());
         }
+    }
+
+    @Override
+    public GameResponseDto getGameById(Long id) {
+        Game game = gameRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Game not found with id: " + id));
+        return GameResponseDto.builder()
+                .id(game.getId())
+                .name(game.getName())
+                .player1Id(game.getPlayer1().getId())
+                .player2Id(game.getPlayer2().getId())
+                .collectionId(game.getCollection() != null ? game.getCollection().getId() : null)
+                .gameStatus(game.getGameStatus())
+                .timePerTurn(game.getTimePerTurn())
+                .build();
     }
 
 }
