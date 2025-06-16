@@ -2,6 +2,8 @@ package com.fastwords.fastwords.controller;
 
 import java.net.URI;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fastwords.fastwords.models.dtos.CreateGameDto;
 import com.fastwords.fastwords.models.dtos.GameResponseDto;
+import com.fastwords.fastwords.services.CollectionServiceImpl;
 import com.fastwords.fastwords.services.GameService;
 
 @RestController()
@@ -19,6 +22,7 @@ import com.fastwords.fastwords.services.GameService;
 public class GameController {
 
     private final GameService gameService;
+    private static final Logger logger = LoggerFactory.getLogger(CollectionServiceImpl.class);
 
     public GameController(GameService gameService) {
         this.gameService = gameService;

@@ -1,8 +1,8 @@
-// hooks/useGameData.ts
 import { useEffect, useState } from "react";
+import IGameData from "../types/gameData";
 
 export function useGameData(gameId: string, playerId: string) {
-    const [gameData, setGameData] = useState<any>(null);
+    const [gameData, setGameData] = useState<IGameData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 

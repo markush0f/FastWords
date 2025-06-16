@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -14,6 +16,7 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import com.fastwords.fastwords.models.entities.Game;
 import com.fastwords.fastwords.repository.GameRepository;
+import com.fastwords.fastwords.services.CollectionServiceImpl;
 import com.fastwords.fastwords.services.GameConnectionService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,8 +26,8 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
     private final GameRepository gameRepository;
     private final GameConnectionService connectionService;
-
     private final Map<Long, Set<Long>> connectedUsers = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(CollectionServiceImpl.class);
 
     public WebSocketAuthInterceptor(GameRepository gameRepository, GameConnectionService connectionService) {
         this.gameRepository = gameRepository;
@@ -38,17 +41,14 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             WebSocketHandler wsHandler,
             Map<String, Object> attributes) {
 
-        // Verifica que la petición sea HTTP tipo servlet
         if (!(request instanceof ServletServerHttpRequest servletRequest)) {
             return false;
         }
 
-        // Extrae la petición HTTP real
         HttpServletRequest httpRequest = servletRequest.getServletRequest();
         String userIdStr = httpRequest.getParameter("userId");
         String gameIdStr = httpRequest.getParameter("gameId");
 
-        // Si no se envia userId, se rechaza la conexión
         if (userIdStr == null) {
             System.out.println("❌ Falta userId en la URL");
             return false;
@@ -57,7 +57,6 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         Long userId;
         Long gameId;
 
-        // Convierte userId a Long, si es inválido rechaza
         try {
             userId = Long.parseLong(userIdStr);
         } catch (NumberFormatException e) {
@@ -65,16 +64,13 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             return false;
         }
 
-        // Guarda el userId en los atributos de la sesión WebSocket
         attributes.put("userId", userId);
 
-        // Si no hay gameId, se asume que es una conexión inicial para matchmaking
         if (gameIdStr == null) {
             System.out.println("🔁 Conexión sin gameId (modo matchmaking)");
             return true;
         }
 
-        // Convierte gameId a Long, si falla rechaza
         try {
             gameId = Long.parseLong(gameIdStr);
         } catch (NumberFormatException e) {
@@ -82,7 +78,6 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             return false;
         }
 
-        // Busca el juego por ID, si no existe rechaza
         Optional<Game> optionalGame = gameRepository.findById(gameId);
         if (optionalGame.isEmpty()) {
             System.out.println("❌ Juego no encontrado: " + gameId);
@@ -91,7 +86,6 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
         Game game = optionalGame.get();
 
-        // Verifica que el usuario pertenezca al juego (player1 o player2)
         boolean isPlayer
                 = (game.getPlayer1() != null && game.getPlayer1().getId().equals(userId))
                 || (game.getPlayer2() != null && game.getPlayer2().getId().equals(userId));
@@ -101,24 +95,20 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             return false;
         }
 
-        // Asegura que haya una lista para los jugadores conectados a este juego
         connectedUsers.putIfAbsent(gameId, ConcurrentHashMap.newKeySet());
         Set<Long> players = connectedUsers.get(gameId);
 
-        // Si ya estaba conectado, se permite reconectar
         if (players.contains(userId)) {
             System.out.println("🔁 Reconexion permitida: userId=" + userId + " en gameId=" + gameId);
             attributes.put("gameId", gameId);
             return true;
         }
 
-        // Si ya hay 2 jugadores distintos conectados, rechaza nuevos
-        if (players.size() >= 2) {
+        if (players.size() >= 2 && !players.contains(userId)) {
             System.out.println("❌ El juego " + gameId + " ya tiene 2 jugadores distintos conectados");
             return false;
         }
 
-        // Agrega al usuario como jugador conectado
         players.add(userId);
         attributes.put("gameId", gameId);
 
