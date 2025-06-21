@@ -82,4 +82,10 @@ public class GameServiceImpl implements GameService {
                 .build();
     }
 
+    @Override
+    public Game findGameOrThrowNotFound(Long id) {
+        return gameRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Game not found with id: " + id));
+    }
+
 }

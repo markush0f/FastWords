@@ -9,4 +9,6 @@ public interface WordService {
     WordResponseDto findWordById(Long id);
 
     WordResponseDto[] getAllWordsByCollectionId(Long collectionId);
+
+    boolean checkWordExists(String word, Long collectionId);
 }

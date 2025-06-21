@@ -1,9 +1,11 @@
 package com.fastwords.fastwords.websocket;
 
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
 import com.fastwords.fastwords.models.dtos.GameStartDto;
+import com.fastwords.fastwords.models.dtos.PlayTurnDto;
 import com.fastwords.fastwords.services.GameConnectionService;
 
 @Controller
@@ -26,4 +28,10 @@ public class GameWebSocketController {
     public void startGame(GameStartDto gameStartDto) {
         gameConnectionService.notifyGameStart(Long.parseLong(gameStartDto.getGameId()));
     }
+
+    @MessageMapping("/game/{gameId}/play")
+    public void playTurn(@DestinationVariable Long gameId, PlayTurnDto playTurnDto) {
+        gameSocketService.handleTurn(gameId, playTurnDto);
+    }
+
 }

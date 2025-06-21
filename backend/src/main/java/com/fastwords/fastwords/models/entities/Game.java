@@ -41,10 +41,24 @@ public class Game {
     @JoinColumn(name = "winner_id")
     private User winner;
 
+    @ManyToOne
+    @JoinColumn(name = "current_turn_player_id")
+    private User currentTurnPlayer;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "time_per_turn", nullable = false)
     private Integer timePerTurn;
+
+    public void advanceTurn() {
+        if (player1 != null && player2 != null) {
+            if (currentTurnPlayer.getId().equals(player1.getId())) {
+                currentTurnPlayer = player2;
+            } else {
+                currentTurnPlayer = player1;
+            }
+        }
+    }
 
 }

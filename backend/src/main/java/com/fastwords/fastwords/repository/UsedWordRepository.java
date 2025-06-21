@@ -7,5 +7,9 @@ import com.fastwords.fastwords.models.entities.UsedWord;
 import com.fastwords.fastwords.models.entities.Word;
 
 public interface UsedWordRepository extends JpaRepository<UsedWord, Long> {
+
     boolean existsByGameAndWord(Game game, Word word);
+
+    boolean existsByGameIdAndWordId(Long gameId, Long wordId);
+
 }

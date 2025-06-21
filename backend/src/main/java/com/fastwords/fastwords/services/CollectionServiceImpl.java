@@ -32,13 +32,12 @@ public class CollectionServiceImpl implements CollectionService {
 
     @Override
     public CollectionResponseDto findCollectionbyId(Long collectionId) {
-        Collection collection = collectionRepository.findById(collectionId)
-                .orElseThrow(() -> new RuntimeException("Collection not found with id: " + collectionId));
+        Collection collection = findCollectionOrThrowNotFound(collectionId);
 
         return CollectionResponseDto.builder()
                 .id(collection.getId())
                 .name(collection.getName())
-                .build();
+                .build(); 
     }
 
     @Override
