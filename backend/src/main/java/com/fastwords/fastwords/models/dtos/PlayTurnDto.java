@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PlayTurnDto {
-    private Long playerId;
+    private String gameId;
+    private String playerId;
     private String word;
 }

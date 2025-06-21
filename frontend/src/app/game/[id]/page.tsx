@@ -2,7 +2,7 @@
 import { useGameData } from '@/app/hooks/useGameData';
 import { useGameSocket } from '@/app/hooks/useGameSocket';
 import { useParams, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function PageGame() {
     const { id } = useParams();
@@ -11,20 +11,16 @@ export default function PageGame() {
     const playerId = searchParams.get("playerId") ?? '';
 
     const { gameData, loading, error } = useGameData(gameId, playerId);
+    const { gameStarted, lastWord, sendTurn } = useGameSocket(gameId, playerId);
+    const [inputWord, setInputWord] = useState("");
 
-    const { gameStarted } = useGameSocket(gameId, playerId);
-
-    useEffect(() => {
-        if (gameStarted) {
-            console.log("🔥 Partida oficialmente iniciada");
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (inputWord.trim()) {
+            sendTurn(inputWord.trim().toLowerCase());
+            setInputWord("");
         }
-    }, [gameStarted]);
-
-    useEffect(() => {
-        if (gameData) {
-            console.log("🎮 Game data:", gameData);
-        }
-    }, [gameData]);
+    };
 
     if (loading) return <p>🔄 Cargando juego...</p>;
     if (error) return <p>❌ Error: {error}</p>;
@@ -35,9 +31,24 @@ export default function PageGame() {
             <h1 className="text-2xl font-bold">🎮 Juego #{gameData.id}</h1>
             <p>Jugador 1: {gameData.player1Id}</p>
             <p>Jugador 2: {gameData.player2Id}</p>
-            <p>Tiempo por turno: {gameData.timePerTurn} segundos</p>
             <p>Colección: {gameData.collectionId}</p>
-            <p>🟢 Partida iniciada: {gameStarted ? "Sí" : "No"}</p>
+            <p>⏳ Estado: {gameStarted ? "En curso" : "Esperando inicio..."}</p>
+            <p>📦 Última palabra jugada: {lastWord ?? "Ninguna"}</p>
+
+            {gameStarted && (
+                <form onSubmit={handleSubmit} className="mt-4">
+                    <input
+                        type="text"
+                        value={inputWord}
+                        onChange={(e) => setInputWord(e.target.value)}
+                        className="border p-2 mr-2"
+                        placeholder="Escribe una palabra..."
+                    />
+                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+                        Enviar
+                    </button>
+                </form>
+            )}
         </div>
     );
 }

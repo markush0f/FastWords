@@ -21,6 +21,7 @@ import com.fastwords.fastwords.repository.CollectionRepository;
 import com.fastwords.fastwords.repository.GameRepository;
 import com.fastwords.fastwords.repository.UserRepository;
 import com.fastwords.fastwords.services.CollectionServiceImpl;
+import com.fastwords.fastwords.services.GameConnectionService;
 
 @Controller
 public class MatchmakingController {
@@ -30,18 +31,21 @@ public class MatchmakingController {
     private final GameRepository gameRepository;
     private final UserRepository userRepository;
     private final CollectionRepository collectionRepository;
+    private final GameConnectionService gameConnectionService;
     private static final Logger logger = LoggerFactory.getLogger(CollectionServiceImpl.class);
 
     public MatchmakingController(
             SimpMessagingTemplate messagingTemplate,
             GameRepository gameRepository,
             UserRepository userRepository,
-            CollectionRepository collectionRepository
+            CollectionRepository collectionRepository,
+            GameConnectionService gameConnectionService
     ) {
         this.messagingTemplate = messagingTemplate;
         this.gameRepository = gameRepository;
         this.userRepository = userRepository;
         this.collectionRepository = collectionRepository;
+        this.gameConnectionService = gameConnectionService;
     }
 
     @MessageMapping("/matchmaking")
@@ -50,6 +54,7 @@ public class MatchmakingController {
         String playerId = request.getPlayerId();
         String opponentId = waitingPlayers.poll();
         logger.info("Creating game between {} and {}", playerId, opponentId);
+
         if (opponentId != null) {
             User player1 = userRepository.findById(Long.valueOf(playerId)).orElseThrow();
             logger.info("Player 1: {}", player1.getUsername());
@@ -73,7 +78,9 @@ public class MatchmakingController {
             messagingTemplate.convertAndSend("/topic/matchmaking/" + opponentId, gameId);
 
             sendGameData(gameCreated);
+            gameConnectionService.notifyGameStart(gameId);
         } else {
+
             waitingPlayers.add(playerId);
         }
     }

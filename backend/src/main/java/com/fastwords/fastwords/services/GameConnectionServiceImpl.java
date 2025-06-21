@@ -22,25 +22,26 @@ public class GameConnectionServiceImpl implements GameConnectionService {
     }
 
     @Override
-    public void addConnectedPlayer(Long gameId, Long userId) {
-        connectedUsers.putIfAbsent(gameId, ConcurrentHashMap.newKeySet());
-        Set<Long> players = connectedUsers.get(gameId);
-        players.add(userId);
+public void addConnectedPlayer(Long gameId, Long userId) {
+    connectedUsers.putIfAbsent(gameId, ConcurrentHashMap.newKeySet());
+    Set<Long> players = connectedUsers.get(gameId);
+    players.add(userId);
 
-        if (players.size() == 2) {
-            new Thread(() -> {
-                try {
-                    Thread.sleep(300);
-                    messagingTemplate.convertAndSend("/topic/game/" + gameId, "start");
-                } catch (InterruptedException ignored) {
-                }
-            }).start();
-        }
+    if (players.size() == 2) {
+        new Thread(() -> {
+            try {
+                Thread.sleep(300);
+                messagingTemplate.convertAndSend("/topic/game/" + gameId + "/start", "start");
+            } catch (InterruptedException ignored) {
+            }
+        }).start();
     }
+}
 
-    @Override
-    public void notifyGameStart(Long gameId) {
-        logger.info("Notifying game start for gameId: {}", gameId);
-        messagingTemplate.convertAndSend("/topic/game/" + gameId, "start");
-    }
+@Override
+public void notifyGameStart(Long gameId) {
+    logger.info("Notifying game start for gameId: {}", gameId);
+    messagingTemplate.convertAndSend("/topic/game/" + gameId + "/start", "start");
+}
+
 }

@@ -79,7 +79,6 @@ export function useMatchmaking(): UseMatchmakingResult {
                     setStartReceived(true);
                 });
 
-                // ✅ Pedimos al backend que reenvíe el gameData
                 client.publish({
                     destination: "/app/game/data/request",
                     body: JSON.stringify({ playerId: userId, gameId: gameId }),

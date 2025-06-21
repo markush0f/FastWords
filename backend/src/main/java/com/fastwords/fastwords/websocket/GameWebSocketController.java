@@ -1,6 +1,5 @@
 package com.fastwords.fastwords.websocket;
 
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
@@ -29,9 +28,18 @@ public class GameWebSocketController {
         gameConnectionService.notifyGameStart(Long.parseLong(gameStartDto.getGameId()));
     }
 
-    @MessageMapping("/game/{gameId}/play")
-    public void playTurn(@DestinationVariable Long gameId, PlayTurnDto playTurnDto) {
-        gameSocketService.handleTurn(gameId, playTurnDto);
+    @MessageMapping("/game/turn")
+    public void handleTurn(PlayTurnDto turnDto) {
+        try {
+            gameSocketService.handleTurn(
+                    Long.parseLong(turnDto.getGameId()),
+                    Long.parseLong(turnDto.getPlayerId()),
+                    turnDto.getWord()
+            );
+        } catch (IllegalArgumentException e) {
+            gameSocketService.sendSystemMessage(Long.parseLong(turnDto.getGameId()), e.getMessage());
+        }
     }
+
 
 }
