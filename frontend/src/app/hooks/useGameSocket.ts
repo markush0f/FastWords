@@ -6,6 +6,7 @@ export function useGameSocket(gameId: string, playerId: string) {
     const [gameStarted, setGameStarted] = useState(false);
     const [lastWord, setLastWord] = useState<string | null>(null);
     const stompRef = useRef<Client | null>(null);
+    const [currentTurnPlayerId, setCurrentTurnPlayerId] = useState<string | null>(null);
 
     useEffect(() => {
         const socketUrl = `ws://localhost:8080/ws?userId=${playerId}&gameId=${gameId}`;
@@ -22,11 +23,15 @@ export function useGameSocket(gameId: string, playerId: string) {
                         setGameStarted(true);
                     }
                 });
+                console.log(`📡 Subscribiéndome a /topic/game/${gameId}/turn`);
 
                 client.subscribe(`/topic/game/${gameId}/turn`, (message) => {
-                    console.log("📩 Turno recibido:", message.body);
+                    const turnPlayerId = message.body;
+                    console.log("📩 Turno recibido para:", turnPlayerId);
+
                     showPlayerTurnToast();
-                    setLastWord(message.body);
+                    setCurrentTurnPlayerId(turnPlayerId);
+                    setLastWord(null); // si quieres limpiar la palabra anterior
                 });
             },
             onStompError: (frame) => {
@@ -66,5 +71,6 @@ export function useGameSocket(gameId: string, playerId: string) {
         gameStarted,
         lastWord,
         sendTurn,
+        currentTurnPlayerId,
     };
 }

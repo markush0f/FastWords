@@ -44,7 +44,7 @@ public class Game {
     @ManyToOne
     @JoinColumn(name = "current_turn_player_id")
     private User currentTurnPlayer;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -59,6 +59,15 @@ public class Game {
                 currentTurnPlayer = player1;
             }
         }
+    }
+
+    public void startGameWithRandomTurn() {
+        if (player1 == null || player2 == null) {
+            throw new IllegalStateException("Ambos jugadores deben estar asignados antes de iniciar el juego.");
+        }
+
+        this.currentTurnPlayer = Math.random() < 0.5 ? player1 : player2;
+        this.gameStatus = GameStatus.ACTIVE;
     }
 
 }

@@ -2,16 +2,19 @@ package com.fastwords.fastwords.websocket;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import com.fastwords.fastwords.models.dtos.PlayTurnDto;
+import com.fastwords.fastwords.common.enums.GameStatus;
 import com.fastwords.fastwords.models.entities.Game;
 import com.fastwords.fastwords.models.entities.UsedWord;
 import com.fastwords.fastwords.models.entities.Word;
 import com.fastwords.fastwords.repository.GameRepository;
 import com.fastwords.fastwords.repository.UsedWordRepository;
 import com.fastwords.fastwords.repository.WordRepository;
+import com.fastwords.fastwords.services.CollectionServiceImpl;
 import com.fastwords.fastwords.services.GameService;
 
 @Service
@@ -22,13 +25,14 @@ public class GameSocketService {
     private final WordRepository wordRepository;
     private final UsedWordRepository usedWordRepository;
     private final GameRepository gameRepository;
+    private static final Logger logger = LoggerFactory.getLogger(CollectionServiceImpl.class);
 
     public GameSocketService(
-        SimpMessagingTemplate messagingTemplate,
-        GameService gameService,
-        WordRepository wordRepository,
-        UsedWordRepository usedWordRepository,
-        GameRepository gameRepository
+            SimpMessagingTemplate messagingTemplate,
+            GameService gameService,
+            WordRepository wordRepository,
+            UsedWordRepository usedWordRepository,
+            GameRepository gameRepository
     ) {
         this.messagingTemplate = messagingTemplate;
         this.gameService = gameService;
@@ -54,6 +58,8 @@ public class GameSocketService {
     }
 
     public void handleTurn(Long gameId, Long playerId, String wordStr) {
+        System.out.println("📨 [handleTurn] gameId=" + gameId + ", playerId=" + playerId + ", word=" + wordStr);
+
         Game game = gameService.findGameOrThrowNotFound(gameId);
 
         if (!game.getCurrentTurnPlayer().getId().equals(playerId)) {
@@ -82,5 +88,29 @@ public class GameSocketService {
         gameRepository.save(game);
 
         messagingTemplate.convertAndSend("/topic/game/" + gameId + "/turn", wordStr);
+    }
+
+    public void startGame(Long gameId) {
+        logger.info("🔁 Starting game with ID: {}", gameId);
+        Game game = gameService.findGameOrThrowNotFound(gameId);
+        if (game.getCurrentTurnPlayer() != null) {
+
+            if (Math.random() < 0.5) {
+                game.setCurrentTurnPlayer(game.getPlayer1());
+            } else {
+                game.setCurrentTurnPlayer(game.getPlayer2());
+            }
+
+            game.setGameStatus(GameStatus.ACTIVE);
+            gameRepository.save(game);
+            logger.info("🔁 Game started with random turn: {}", game.getCurrentTurnPlayer().getUsername());
+
+            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/start", "start");
+
+            messagingTemplate.convertAndSend(
+                    "/topic/game/" + gameId + "/turn",
+                    game.getCurrentTurnPlayer().getId().toString()
+            );
+        }
     }
 }

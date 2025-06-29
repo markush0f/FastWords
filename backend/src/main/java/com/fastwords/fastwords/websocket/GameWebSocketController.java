@@ -30,6 +30,8 @@ public class GameWebSocketController {
 
     @MessageMapping("/game/turn")
     public void handleTurn(PlayTurnDto turnDto) {
+        System.out.println("📨 [handleTurn] gameId=" + turnDto.getGameId() + ", playerId=" + turnDto.getPlayerId() + ", word=" + turnDto.getWord());
+        
         try {
             gameSocketService.handleTurn(
                     Long.parseLong(turnDto.getGameId()),
