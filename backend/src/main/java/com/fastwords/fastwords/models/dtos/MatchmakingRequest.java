@@ -6,6 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MatchmakingRequest {
-    private String playerId;   
-}
 
+    private String playerId;
+    private Long collectionId; 
+    private String gameId;    
+}

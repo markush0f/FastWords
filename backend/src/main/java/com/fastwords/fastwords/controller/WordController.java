@@ -42,4 +42,12 @@ public class WordController {
         return ResponseEntity.ok(wordService.getAllWordsByCollectionId(collectionId));
     }
 
+    @PostMapping("checkWord/")
+    public String postMethodName(@RequestBody String entity) {
+        //TODO: process POST request
+        
+        return entity;
+    }
+    
+
 }
