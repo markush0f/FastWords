@@ -54,7 +54,7 @@ public class GameConnectionServiceImpl implements GameConnectionService {
         logger.info("🔁 Starting game with ID: {}", gameId);
         Game game = gameService.findGameOrThrowNotFound(gameId);
 
-        if (game.getCurrentTurnPlayer() == null) { // ✅ CORREGIDO
+        if (game.getCurrentTurnPlayer() == null) {
 
             // asignar turno aleatorio
             if (Math.random() < 0.5) {
@@ -66,7 +66,7 @@ public class GameConnectionServiceImpl implements GameConnectionService {
             game.setGameStatus(GameStatus.ACTIVE);
             gameRepository.save(game);
 
-            logger.info("🟢 Game started. First turn: {}", game.getCurrentTurnPlayer().getUsername());
+            logger.info("Game started. First turn: {}", game.getCurrentTurnPlayer().getUsername());
 
             messagingTemplate.convertAndSend("/topic/game/" + gameId + "/start", "start");
 
