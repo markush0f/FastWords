@@ -78,7 +78,6 @@ public class MatchmakingController {
             messagingTemplate.convertAndSend("/topic/matchmaking/" + opponentId, gameId);
 
             sendGameData(gameCreated);
-            gameConnectionService.notifyGameStart(gameId);
         } else {
 
             waitingPlayers.add(playerId);

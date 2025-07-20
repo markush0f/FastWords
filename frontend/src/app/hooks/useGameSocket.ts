@@ -23,20 +23,16 @@ export function useGameSocket(gameId: string, playerId: string) {
                         setGameStarted(true);
                     }
                 });
+
                 console.log(`📡 Subscribiéndome a /topic/game/${gameId}/turn`);
 
-                client.subscribe(`/topic/game/${gameId}/turn`, (message) => {
-                    const turnPlayerId = message.body;
-                    console.log("📩 Turno recibido para:", turnPlayerId);
 
-                    showPlayerTurnToast();
-                    setCurrentTurnPlayerId(turnPlayerId);
-                    setLastWord(null); // si quieres limpiar la palabra anterior
+                client.publish({
+                    destination: "/app/game/start",
+                    body: JSON.stringify({ gameId }),
                 });
-            },
-            onStompError: (frame) => {
-                console.error("❌ STOMP error:", frame);
-            },
+            }
+
         });
 
         client.activate();

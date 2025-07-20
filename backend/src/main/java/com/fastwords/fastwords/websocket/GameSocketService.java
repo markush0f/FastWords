@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import com.fastwords.fastwords.common.enums.GameStatus;
 import com.fastwords.fastwords.models.entities.Game;
 import com.fastwords.fastwords.models.entities.UsedWord;
 import com.fastwords.fastwords.models.entities.Word;
@@ -90,27 +89,5 @@ public class GameSocketService {
         messagingTemplate.convertAndSend("/topic/game/" + gameId + "/turn", wordStr);
     }
 
-    public void startGame(Long gameId) {
-        logger.info("🔁 Starting game with ID: {}", gameId);
-        Game game = gameService.findGameOrThrowNotFound(gameId);
-        if (game.getCurrentTurnPlayer() != null) {
-
-            if (Math.random() < 0.5) {
-                game.setCurrentTurnPlayer(game.getPlayer1());
-            } else {
-                game.setCurrentTurnPlayer(game.getPlayer2());
-            }
-
-            game.setGameStatus(GameStatus.ACTIVE);
-            gameRepository.save(game);
-            logger.info("🔁 Game started with random turn: {}", game.getCurrentTurnPlayer().getUsername());
-
-            messagingTemplate.convertAndSend("/topic/game/" + gameId + "/start", "start");
-
-            messagingTemplate.convertAndSend(
-                    "/topic/game/" + gameId + "/turn",
-                    game.getCurrentTurnPlayer().getId().toString()
-            );
-        }
-    }
+    
 }

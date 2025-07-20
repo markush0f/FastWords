@@ -79,6 +79,7 @@ public class GameServiceImpl implements GameService {
                 .collectionId(game.getCollection() != null ? game.getCollection().getId() : null)
                 .gameStatus(game.getGameStatus())
                 .timePerTurn(game.getTimePerTurn())
+                .currentTurnPlayerId(game.getCurrentTurnPlayer() != null ? game.getCurrentTurnPlayer().getId() : null   )
                 .build();
     }
 

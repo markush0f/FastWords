@@ -19,7 +19,7 @@ export function useMatchmaking(): UseMatchmakingResult {
     const [startReceived, setStartReceived] = useState(false);
     const stompRef = useRef<Client | null>(null);
     const router = useRouter();
-    const playerIdRef = useRef<string | null>(null); // ✅ siempre actualizado
+    const playerIdRef = useRef<string | null>(null);
 
     const setPlayerIdSafe = (id: string | null) => {
         setPlayerId(id);
@@ -29,9 +29,9 @@ export function useMatchmaking(): UseMatchmakingResult {
     const findMatch = (id: string) => {
         setSearching(true);
         setError(null);
-        setPlayerIdSafe(id); // ✅ actualizamos el ref
+        setPlayerIdSafe(id);
 
-        const socketUrl = `ws://localhost:8080/ws?userId=${id}`; // ⚠️ solo userId, sin gameId aún
+        const socketUrl = `ws://localhost:8080/ws?userId=${id}`;
 
         const client = new Client({
             brokerURL: socketUrl,
@@ -48,10 +48,6 @@ export function useMatchmaking(): UseMatchmakingResult {
                     });
                 });
 
-                client.publish({
-                    destination: "/app/matchmaking",
-                    body: JSON.stringify({ playerId: id, collectionId: 1 }),
-                });
             },
             onStompError: (frame) => {
                 console.error("STOMP error", frame);
