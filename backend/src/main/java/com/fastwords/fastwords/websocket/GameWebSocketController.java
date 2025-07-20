@@ -1,10 +1,13 @@
 package com.fastwords.fastwords.websocket;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
 import com.fastwords.fastwords.models.dtos.GameStartDto;
 import com.fastwords.fastwords.models.dtos.PlayTurnDto;
+import com.fastwords.fastwords.services.CollectionServiceImpl;
 import com.fastwords.fastwords.services.GameConnectionService;
 
 @Controller
@@ -12,6 +15,7 @@ public class GameWebSocketController {
 
     private final GameSocketService gameSocketService;
     private final GameConnectionService gameConnectionService;
+    private static final Logger logger = LoggerFactory.getLogger(CollectionServiceImpl.class);
 
     public GameWebSocketController(GameSocketService gameSocketService, GameConnectionService gameConnectionService) {
         this.gameSocketService = gameSocketService;
@@ -25,6 +29,7 @@ public class GameWebSocketController {
 
     @MessageMapping("/game/start")
     public void startGame(GameStartDto gameStartDto) {
+        logger.info("Executing startGame with gameId: {}", gameStartDto.getGameId());
         gameConnectionService.notifyGameStart(Long.parseLong(gameStartDto.getGameId()));
     }
 
