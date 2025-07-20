@@ -15,6 +15,7 @@ export function useGameData(gameId: string, playerId: string) {
                 const res = await fetch(`http://localhost:8080/api/v1/game/${gameId}`);
                 if (!res.ok) throw new Error("Game not found");
                 const data = await res.json();
+                console.log("DATA:", data);
                 setGameData(data);
             } catch (err: any) {
                 setError(err.message);
@@ -25,6 +26,7 @@ export function useGameData(gameId: string, playerId: string) {
 
         fetchGameData();
     }, [gameId]);
+
 
     return { gameData, loading, error };
 }
