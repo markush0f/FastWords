@@ -22,27 +22,29 @@ export default function PageGame() {
         }
     };
 
-    if (loading) return <p>🔄 Cargando juego...</p>;
-    if (error) return <p>❌ Error: {error}</p>;
-    if (!gameData) return <p>❗ No se encontraron datos del juego.</p>;
+    if (loading) return <p className="p-4">🔄 Cargando juego...</p>;
+    if (error) return <p className="p-4">❌ Error: {error}</p>;
+    if (!gameData) return <p className="p-4">❗ No se encontraron datos del juego.</p>;
 
     const isMyTurn = currentTurnPlayerId === playerId;
 
     return (
-        <div className="p-4">
-            <h1 className="text-2xl font-bold">🎮 Juego #{gameData.id}</h1>
-            <p>Jugador 1: {gameData.player1Id}</p>
-            <p>Jugador 2: {gameData.player2Id}</p>
-            <p>Colección: {gameData.collectionId}</p>
-            <p>⏳ Estado: {gameStarted ? "En curso" : "Esperando inicio..."}</p>
-            <p>📦 Última palabra jugada: {lastWord ?? "Ninguna"}</p>
-            <p>🧠 Turno actual: {
-                currentTurnPlayerId
-                    ? isMyTurn
-                        ? "¡Es tu turno!"
-                        : "Esperando al otro jugador..."
-                    : "Aún no asignado"
-            }</p>
+        <div className="p-4 bg-gray-100 rounded-lg shadow-md">
+            <h1 className="text-2xl font-bold mb-4">🎮 Juego #{gameData.id}</h1>
+            <div className="mb-4">
+                <p><span className="font-semibold">Jugador 1:</span> {gameData.player1Id}</p>
+                <p><span className="font-semibold">Jugador 2:</span> {gameData.player2Id}</p>
+                <p><span className="font-semibold">Colección:</span> {gameData.collectionId}</p>
+                <p><span className="font-semibold">⏳ Estado:</span> {gameStarted ? "En curso" : "Esperando inicio..."}</p>
+                <p><span className="font-semibold">📦 Última palabra jugada:</span> {lastWord ?? "Ninguna"}</p>
+                <p><span className="font-semibold">🧠 Turno actual:</span> {
+                    currentTurnPlayerId
+                        ? isMyTurn
+                            ? "¡Es tu turno!"
+                            : "Esperando al otro jugador..."
+                        : "Aún no asignado"
+                }</p>
+            </div>
 
             {gameStarted && isMyTurn && (
                 <form onSubmit={handleSubmit} className="mt-4">
@@ -50,10 +52,10 @@ export default function PageGame() {
                         type="text"
                         value={inputWord}
                         onChange={(e) => setInputWord(e.target.value)}
-                        className="border p-2 mr-2"
+                        className="border border-gray-300 p-2 mr-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                         placeholder="Escribe una palabra..."
                     />
-                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
                         Enviar
                     </button>
                 </form>
