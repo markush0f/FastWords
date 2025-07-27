@@ -29,7 +29,7 @@ public class UserController {
     }
 
 
-    @PostMapping("")
+    @PostMapping    ("")
     public ResponseEntity<UserResponseDto> createUser(@RequestBody CreateUserDto createUserDto) {
         System.out.println("Received request to create user with details: " + createUserDto);
         UserResponseDto createdUser = userService.createUser(createUserDto);

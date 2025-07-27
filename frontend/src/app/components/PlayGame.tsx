@@ -35,13 +35,13 @@ export default function PlayGame() {
                 className="object-cover -mt-20"
             />
 
-            {/* <input
+            <input
                 type="text"
                 value={playerId || ''}
                 onChange={(e) => setPlayerId(e.target.value)}
                 placeholder="Enter your player ID"
                 className="mt-6 text-2xl px-6 py-2 rounded-xl border-2 border-gray-300 focus:outline-none focus:border-blue-500"
-            /> */}
+            />
 
             <motion.button
                 onClick={handleSearch}
